@@ -26,6 +26,7 @@ License: GPLv2
 	Foundation, Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+// file path for linking to external files
 //require_once( dirname( __FILE__ ) . '/shared-globals.php' );
 
 // function and global prefix: hne / HNE
@@ -144,6 +145,11 @@ function hne_page() {
 	echo '	<form method="post" action="options.php">';
 	settings_fields( HNE_SETTINGS );
 
+	// 1. check if user is super-admin, have "global apply", grey out for non-super-admin
+
+	// 2. check if user is admin, show all managed sites
+	//			if global apply was set, then show but grey them out
+
 	echo '		<input type="submit" class="button-primary" value="';
 	_e( 'Save Changes', HNE_PLUGIN_TAG );
 	echo '" />';
@@ -186,4 +192,51 @@ function hne_update_value( $value ) {
 	// set options to variables
 	// do something
 	return $value;
+}
+
+//check here for hooks:http://codex.wordpress.org/Function_Reference/comment_form
+// need to read wordpress code probably
+//  looks like want the filter comment_form_default_fields
+
+/*
+ * 		global $current_site;
+			if($current_site->id == 1) {
+   		echo $current_site->path;
+}
+ */
+
+
+// removes the links for adding comments
+add_filter( 'comments_open', 'my_comments_open', 10, 2 );
+
+function my_comments_open( $open, $post_id ) {
+
+	//$post = get_post( $post_id );
+
+	//if ( 'page' == $post->post_type )
+	//	$open = false;
+
+	//return $open;
+	return false;
+}
+
+// remove the ability to edit existing comments
+// if existing one should still be shown
+
+// remove the ability to view existing comments
+add_filter( 'comments_array', 'my_comments_array', 10, 2); // should it be 2 args?
+
+function my_comments_array( $comments, $post_id ) {
+	return null;
+}
+
+// remove ability to view comment widget
+add_action( 'widgets_init', 'custom_recent_comments' );
+function custom_recent_comments(){
+	add_filter( 'comments_clauses', 'custom_comments_clauses' );
+}
+
+function custom_comments_clauses( $clauses ){
+	$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
+	return $clauses;
 }
