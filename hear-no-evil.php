@@ -134,11 +134,73 @@ function hne_page() {
 	if ( ! current_user_can( HNE_WP_USER_MANAGE_OPTS ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
+	$allSites = null;
 
+	$testState = "";
+
+	if ((is_multisite()) && (!wp_is_large_network())) { // current avoid sites with 10K+ sites, the wp_get_sites() will return empty in that case
+		$testState .= "multisite ";
+		if (current_user_can("manage_sites")) { // check if super-admin
+			//     show apply to all
+			$testState .= "super-admin ";
+			/* can pass in $args to wp_get_sites() and limit the results based on args
+			 * <?php $args = array(
+						'network_id' => $wpdb->siteid,
+						'public'     => null,
+						'archived'   => null,
+						'mature'     => null,
+						'spam'       => null,
+						'deleted'    => null,
+						'limit'      => 100,
+						'offset'     => 0,
+				); ?>
+			 */
+			$allSites = wp_get_sites();
+			if (!empty($allSites)) {
+				/* What $allSites will look like
+				 * Array(
+   			 [0] => Array(
+        [blog_id] => 1
+        [site_id] => 1
+        [domain] => example.com
+        [path] => /sub-site
+        [registered] => 2013-11-08 17:56:46
+        [last_updated] => 2013-11-08 18:57:19
+        [public] => 1
+        [archived] => 0
+        [mature] => 0
+        [spam] => 0
+        [deleted] => 0
+        [lang_id] => 0
+    )
+				 */
+				//     show all site
+				$testState .= "has sites ";
+			} else {
+				$testState .= "has no sites ";
+			}
+		} else if (current_user_can("activate_plugins")) { // check if admin
+		//     enable/disable for site
+			$testState .= "admin ";
+		} else {
+		//     not allowed here
+			$testState .= "shouldn't happen! ";
+		}
+	}
+	else {
+		$testState .= "single site";
+		if (current_user_can("activate_plugins")) { // check if admin
+		//     enable/disable for site
+			$testState .= "admin ";
+		} else {
+		//     not allowed here
+			$testState .= "shouldn't happen! ";
+		}
+	}
 
 	// load options
 
-
+	echo $testState;
 	// create form
 	echo '<h1>Hear No Evil Settings</h1>';
 	echo '<div class="wrap">';

@@ -2,7 +2,7 @@
 Contributors: droppedbars
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D7J2RY6828E7N
 Tags: comments
-Requires at least: 3.8.1
+Requires at least: 3.7
 Tested up to: 3.8.1
 Stable tag: 0.1.0
 Author URI: http://patrick.mauro.ca
