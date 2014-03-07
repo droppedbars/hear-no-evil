@@ -35,12 +35,7 @@ License: GPLv2
 define( "HNE_WP_PLUGIN_INIT", 'init' );
 define( "HNE_WP_PLUGIN_ADMIN_MENU", 'admin_menu' );
 define( "HNE_WP_PLUGIN_ADMIN_INIT", 'admin_init' );
-define( "HNE_WP_PLUGIN_PUBLISH_POST", 'publish_post' );
-define( "HNE_WP_THE_POST", 'the_post' );
 define( "HNE_WP_USER_MANAGE_OPTS", 'manage_options' );
-define( "HNE_WP_THE_CONTENT", 'the_content' );
-define( "HNE_WP_THE_EXCERPT", 'the_excerpt' );
-define( "HNE_WP_THE_TITLE", 'the_title' );
 
 /* Plugin Variables and Attributes */
 define( "HNE_PLUGIN_TAG", 'brand_marker' );
@@ -54,24 +49,12 @@ define( "HNE_SETTINGS_PAGE_URL", 'hear-no-evil' );
 define( "HNE_DB_VERSION", '1.0' );
 
 /* Function Names */
-define( "HNE_FNC_INSTALL",       'hne_install' );
-define( "HNE_FNC_INIT",          'hne_init' );
-define( "HNE_FNC_ADMIN_MENU",    'hne_menu' );
-define( "HNE_FNC_REG_SETTINGS",  'hne_register_settings' );
 define( "HNE_FNC_SANITIZE_OPTS", 'hne_sanitize_options' );
 define( "HNE_FNC_SETTINGS_PAGE", 'hne_page' );
-define( "HNE_FNC_UPDATE_VALUE",  'hne_update_value' );
+define( "HNE_FNC_UPDATE_VALUE", 'hne_update_value' );
 define( "HNE_FNC_ADMIN_SCRIPTS", 'hne_admin_scripts' );
 
-/* Associate WordPress hooks with functions */
-register_activation_hook( __FILE__,   HNE_FNC_INSTALL );
-add_action( HNE_WP_PLUGIN_INIT,       HNE_FNC_INIT );
-add_action( HNE_WP_PLUGIN_ADMIN_MENU, HNE_FNC_ADMIN_MENU );
-add_action( HNE_WP_PLUGIN_ADMIN_INIT, HNE_FNC_REG_SETTINGS );
-//add_filter( HNE_WP_THE_CONTENT,       HNE_FNC_UPDATE_VALUE );
-//add_filter( HNE_WP_THE_EXCERPT,       HNE_FNC_UPDATE_VALUE );
-//add_filter( HNE_WP_THE_TITLE,         HNE_FNC_UPDATE_VALUE );
-
+register_activation_hook( __FILE__, 'hne_install' );
 /*
 	Called via the install hook.
 	Ensure this plugin is compatible with the WordPress version.
@@ -80,17 +63,18 @@ add_action( HNE_WP_PLUGIN_ADMIN_INIT, HNE_FNC_REG_SETTINGS );
 function hne_install() {
 	// check the install version
 	global $wp_version;
-	if ( version_compare( $wp_version, '3.5', '<' ) ) {
-//		wp_die( 'This plugin requires WordPress version 3.5 or higher.' );
+	if ( version_compare( $wp_version, '3.7', '<' ) ) {
+		wp_die( 'This plugin requires WordPress version 3.7 or higher.' );
 	}
 
 	if ( ! get_option( HNE_MARKS ) ) {
-		$options_arr = array( 'key' => 'value' );
+		$options_arr = array( 'site_block_comments' => 'false' );
 		// update the database with the default option values
 		update_option( HNE_MARKS, $options_arr );
 	}
 }
 
+add_action( HNE_WP_PLUGIN_INIT, 'hne_init' );
 /*
 	Called via the init hook.
 	Register javascript and CSS files.
@@ -99,6 +83,7 @@ function hne_init() {
 	//wp_register_script( 'hne_settings_handler', plugins_url( 'assets/settingsHandler.js', __FILE__ ) );
 }
 
+add_action( HNE_WP_PLUGIN_ADMIN_MENU, 'hne_menu' );
 /*
 	Called via the admin menu hook.
 	Define and create the sub-menu item for the plugin under options menu
@@ -134,9 +119,17 @@ function hne_page() {
 	if ( ! current_user_can( HNE_WP_USER_MANAGE_OPTS ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	$allSites = null;
+	$allSites    = null;
+	$options_arr = get_option( HNE_MARKS );
 
-	$testState = "";
+	// create form
+	echo '<h1>Hear No Evil Settings</h1>';
+	echo '<div class="wrap">';
+	echo '	<form method="post" action="options.php">';
+	settings_fields( HNE_SETTINGS );
+
+
+	/*$testState = ""; // TODO: test statement
 
 	if ((is_multisite()) && (!wp_is_large_network())) { // current avoid sites with 10K+ sites, the wp_get_sites() will return empty in that case
 		$testState .= "multisite ";
@@ -155,62 +148,77 @@ function hne_page() {
 						'offset'     => 0,
 				); ?>
 			 */
-			$allSites = wp_get_sites();
-			if (!empty($allSites)) {
-				/* What $allSites will look like
-				 * Array(
-   			 [0] => Array(
-        [blog_id] => 1
-        [site_id] => 1
-        [domain] => example.com
-        [path] => /sub-site
-        [registered] => 2013-11-08 17:56:46
-        [last_updated] => 2013-11-08 18:57:19
-        [public] => 1
-        [archived] => 0
-        [mature] => 0
-        [spam] => 0
-        [deleted] => 0
-        [lang_id] => 0
-    )
-				 */
-				//     show all site
-				$testState .= "has sites ";
+	/*
+				echo '<label><input type="checkbox" name="' . HNE_MARKS . '[master_block]" value="' . true . '" ' . checked( $options_arr['master_block'] ) . '>Globally Block Comments</label>';
+
+
+				$allSites = wp_get_sites();
+				if (!empty($allSites)) {
+					/* What $allSites will look like
+					 * Array(
+						[0] => Array(
+					[blog_id] => 1
+					[site_id] => 1
+					[domain] => example.com
+					[path] => /sub-site
+					[registered] => 2013-11-08 17:56:46
+					[last_updated] => 2013-11-08 18:57:19
+					[public] => 1
+					[archived] => 0
+					[mature] => 0
+					[spam] => 0
+					[deleted] => 0
+					[lang_id] => 0
+			)
+					 */
+	/*
+					//     show all site
+					foreach ($allSites as $site) {
+						// TODO: if the array is empty, or the site setting doesn't exist, set it to false
+						echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
+					}
+					$testState .= "has sites ";
+				} else {
+					$testState .= "has no sites ";
+					echo 'should never land here';
+				}
+			} else if (current_user_can("activate_plugins")) { // check if admin
+			//     enable/disable for site
+				$site = get_current_site();
+
+				// TODO: if the array is empty, or the site setting doesn't exist, set it to false
+				echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
+				$testState .= "admin ";
 			} else {
-				$testState .= "has no sites ";
+			//     not allowed here
+				echo 'should never land here';
+				$testState .= "shouldn't happen! ";
 			}
-		} else if (current_user_can("activate_plugins")) { // check if admin
-		//     enable/disable for site
-			$testState .= "admin ";
-		} else {
-		//     not allowed here
-			$testState .= "shouldn't happen! ";
 		}
-	}
-	else {
-		$testState .= "single site";
-		if (current_user_can("activate_plugins")) { // check if admin
-		//     enable/disable for site
-			$testState .= "admin ";
-		} else {
-		//     not allowed here
-			$testState .= "shouldn't happen! ";
+		else {
+			$testState .= "single site";
+			if (current_user_can("activate_plugins")) { // check if admin
+			//     enable/disable for site
+				$site = get_current_site();
+
+				// TODO: if the array is empty, or the site setting doesn't exist, set it to false
+				echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
+				$testState .= "admin ";
+			} else {
+			//     not allowed here
+				echo 'should never land here';
+				$testState .= "shouldn't happen! ";
+			}
 		}
+
+		echo $testState; //TODO test statement */
+	$block_comments = false;
+	//TODO: check that $options_arr is an array, that the key does exist
+	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) ) {
+		$block_comments = $options_arr['site_block_comments'];
 	}
 
-	// load options
-
-	echo $testState;
-	// create form
-	echo '<h1>Hear No Evil Settings</h1>';
-	echo '<div class="wrap">';
-	echo '	<form method="post" action="options.php">';
-	settings_fields( HNE_SETTINGS );
-
-	// 1. check if user is super-admin, have "global apply", grey out for non-super-admin
-
-	// 2. check if user is admin, show all managed sites
-	//			if global apply was set, then show but grey them out
+	echo '<label><input type="checkbox" name="' . HNE_MARKS . '[site_block_comments]" value="' . true . '" ' . checked( $block_comments, true, false ) . '>Block comments</label><br>';
 
 	echo '		<input type="submit" class="button-primary" value="';
 	_e( 'Save Changes', HNE_PLUGIN_TAG );
@@ -219,6 +227,7 @@ function hne_page() {
 	echo '</div>';
 }
 
+add_action( HNE_WP_PLUGIN_ADMIN_INIT, 'hne_register_settings' );
 /*
 	Store the settings after the user has submitted the settings form.
 */
@@ -235,25 +244,17 @@ function hne_register_settings() {
 function hne_sanitize_options( $options ) {
 	if ( ! is_null( $options ) ) {
 		$sanitized_options = array();
-		$iterator          = 0;
-		foreach ( $options as $key => $value ) {
 
+		if ( isset( $options['site_block_comments'] ) ) {
+			$sanitized_options['site_block_comments'] = true;
+		} else {
+			$sanitized_options['site_block_comments'] = false;
 		}
 
 		return $sanitized_options;
 	} else {
 		return null;
 	}
-}
-
-/*
- * Used as a hook for content, excerpt and title.  Update the content with the appropriate brand markings
- */
-function hne_update_value( $value ) {
-	$options_arr = get_option( HNE_MARKS );
-	// set options to variables
-	// do something
-	return $value;
 }
 
 //check here for hooks:http://codex.wordpress.org/Function_Reference/comment_form
@@ -267,38 +268,53 @@ function hne_update_value( $value ) {
 }
  */
 
+// TODO: handle these based on settings
 
 // removes the links for adding comments
 add_filter( 'comments_open', 'my_comments_open', 10, 2 );
 
 function my_comments_open( $open, $post_id ) {
 
-	//$post = get_post( $post_id );
+	$options_arr = get_option( HNE_MARKS );
 
-	//if ( 'page' == $post->post_type )
-	//	$open = false;
-
-	//return $open;
-	return false;
+	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
+		return false;
+	} else {
+		return $open;
+	}
 }
 
 // remove the ability to edit existing comments
 // if existing one should still be shown
 
 // remove the ability to view existing comments
-add_filter( 'comments_array', 'my_comments_array', 10, 2); // should it be 2 args?
+add_filter( 'comments_array', 'my_comments_array', 10, 2 ); // should it be 2 args?
 
 function my_comments_array( $comments, $post_id ) {
-	return null;
+	$options_arr = get_option( HNE_MARKS );
+
+	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
+		return null;
+	} else {
+		return $comments;
+	}
 }
 
 // remove ability to view comment widget
 add_action( 'widgets_init', 'custom_recent_comments' );
-function custom_recent_comments(){
+function custom_recent_comments() {
 	add_filter( 'comments_clauses', 'custom_comments_clauses' );
 }
 
-function custom_comments_clauses( $clauses ){
-	$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
-	return $clauses;
+function custom_comments_clauses( $clauses ) {
+	$options_arr = get_option( HNE_MARKS );
+
+	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
+		$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
+		return $clauses;
+	} else {
+		return $clauses;
+	}
+
+
 }
