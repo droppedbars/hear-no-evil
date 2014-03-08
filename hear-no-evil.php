@@ -213,9 +213,11 @@ function hne_page() {
 
 		echo $testState; //TODO test statement */
 	$block_comments = false;
-	//TODO: check that $options_arr is an array, that the key does exist
-	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) ) {
-		$block_comments = $options_arr['site_block_comments'];
+
+	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
+		if (array_key_exists('site_block_comments', $options_arr)) {
+			$block_comments = is_bool($options_arr['site_block_comments'])? $options_arr['site_block_comments'] : false;
+		}
 	}
 
 	echo '<label><input type="checkbox" name="' . HNE_MARKS . '[site_block_comments]" value="' . true . '" ' . checked( $block_comments, true, false ) . '>Block comments</label><br>';
@@ -277,11 +279,14 @@ function my_comments_open( $open, $post_id ) {
 
 	$options_arr = get_option( HNE_MARKS );
 
-	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
-		return false;
-	} else {
-		return $open;
+	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
+		if (array_key_exists('site_block_comments', $options_arr)) {
+			if ($options_arr['site_block_comments']) {
+				return null;
+			}
+		}
 	}
+	return $open;
 }
 
 // remove the ability to edit existing comments
@@ -293,11 +298,14 @@ add_filter( 'comments_array', 'my_comments_array', 10, 2 ); // should it be 2 ar
 function my_comments_array( $comments, $post_id ) {
 	$options_arr = get_option( HNE_MARKS );
 
-	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
-		return null;
-	} else {
-		return $comments;
+	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
+		if (array_key_exists('site_block_comments', $options_arr)) {
+			if ($options_arr['site_block_comments']) {
+				return null;
+			}
+		}
 	}
+	return $comments;
 }
 
 // remove ability to view comment widget
@@ -309,12 +317,12 @@ function custom_recent_comments() {
 function custom_comments_clauses( $clauses ) {
 	$options_arr = get_option( HNE_MARKS );
 
-	if ( ( ! is_null( $options_arr ) ) && ( ! is_null( $options_arr['site_block_comments'] ) ) && ( $options_arr['site_block_comments'] ) ) {
-		$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
-		return $clauses;
-	} else {
-		return $clauses;
+	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
+		if (array_key_exists('site_block_comments', $options_arr)) {
+			if ($options_arr['site_block_comments']) {
+				$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
+			}
+		}
 	}
-
-
+	return $clauses;
 }
