@@ -68,10 +68,11 @@ function hne_install() {
 	}
 
 	if ( ! get_option( HNE_MARKS ) ) {
-		$options_arr = array( 'site_block_comments' => 'false' );
+		$site_options_arr = array( 'site_block_commenting' => false, 'site_block_show_comments' => false );
 		// update the database with the default option values
-		update_option( HNE_MARKS, $options_arr );
+		update_site_option( HNE_MARKS, $site_options_arr );
 	}
+
 }
 
 add_action( HNE_WP_PLUGIN_INIT, 'hne_init' );
@@ -110,132 +111,79 @@ function hne_admin_scripts() {
 }
 
 /*
-	Called via the appropriate sub-menu hook.
-	Create the settings page for the plugin
-		Escapes the branding since it goes into a text field.
-		No escaping is done on the trademark since it is only compared and not printed.
+
 */
 function hne_page() {
 	if ( ! current_user_can( HNE_WP_USER_MANAGE_OPTS ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	$allSites    = null;
-	$options_arr = get_option( HNE_MARKS );
+	$allSites = null;
 
-	// create form
+	if ( isset( $_POST['my_submit'] ) ) {
+		if ( ! isset( $_POST[HNE_MARKS]['site_block_commenting'] ) ) {
+			$_POST[HNE_MARKS]['site_block_commenting'] = false;
+		} else {
+			$_POST[HNE_MARKS]['site_block_commenting'] = true;
+		}
+		if ( ! isset( $_POST[HNE_MARKS]['site_block_show_comments'] ) ) {
+			$_POST[HNE_MARKS]['site_block_show_comments'] = false;
+		} else {
+			$_POST[HNE_MARKS]['site_block_show_comments'] = true;
+		}
+
+		$site_options_arr    = Array();
+
+		foreach ( (array) $_POST[HNE_MARKS] as $key => $value ) {
+			// TODO Sanitize option saving
+				$site_options_arr[$key] = (bool) $value;
+		}
+
+		update_site_option( HNE_MARKS, $site_options_arr );
+
+	}
+	$options_arr        = get_site_option( HNE_MARKS );
+
+// create form
 	echo '<h1>Hear No Evil Settings</h1>';
 	echo '<div class="wrap">';
-	echo '	<form method="post" action="options.php">';
+
+
+	if ( isset( $_POST['my_submit'] ) ) {
+		echo '<div id="message" class="updated fade">';
+		echo '	<p>';
+		_e( 'Settings Saved', 'my' );
+		echo '	</p>';
+		echo '</div>';
+	}
+
+	echo '	<form method="post" action="">';
 	settings_fields( HNE_SETTINGS );
 
 
-	/*$testState = ""; // TODO: test statement
-
-	if ((is_multisite()) && (!wp_is_large_network())) { // current avoid sites with 10K+ sites, the wp_get_sites() will return empty in that case
-		$testState .= "multisite ";
-		if (current_user_can("manage_sites")) { // check if super-admin
-			//     show apply to all
-			$testState .= "super-admin ";
-			/* can pass in $args to wp_get_sites() and limit the results based on args
-			 * <?php $args = array(
-						'network_id' => $wpdb->siteid,
-						'public'     => null,
-						'archived'   => null,
-						'mature'     => null,
-						'spam'       => null,
-						'deleted'    => null,
-						'limit'      => 100,
-						'offset'     => 0,
-				); ?>
-			 */
-	/*
-				echo '<label><input type="checkbox" name="' . HNE_MARKS . '[master_block]" value="' . true . '" ' . checked( $options_arr['master_block'] ) . '>Globally Block Comments</label>';
-
-
-				$allSites = wp_get_sites();
-				if (!empty($allSites)) {
-					/* What $allSites will look like
-					 * Array(
-						[0] => Array(
-					[blog_id] => 1
-					[site_id] => 1
-					[domain] => example.com
-					[path] => /sub-site
-					[registered] => 2013-11-08 17:56:46
-					[last_updated] => 2013-11-08 18:57:19
-					[public] => 1
-					[archived] => 0
-					[mature] => 0
-					[spam] => 0
-					[deleted] => 0
-					[lang_id] => 0
-			)
-					 */
-	/*
-					//     show all site
-					foreach ($allSites as $site) {
-						// TODO: if the array is empty, or the site setting doesn't exist, set it to false
-						echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
-					}
-					$testState .= "has sites ";
-				} else {
-					$testState .= "has no sites ";
-					echo 'should never land here';
-				}
-			} else if (current_user_can("activate_plugins")) { // check if admin
-			//     enable/disable for site
-				$site = get_current_site();
-
-				// TODO: if the array is empty, or the site setting doesn't exist, set it to false
-				echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
-				$testState .= "admin ";
-			} else {
-			//     not allowed here
-				echo 'should never land here';
-				$testState .= "shouldn't happen! ";
-			}
-		}
-		else {
-			$testState .= "single site";
-			if (current_user_can("activate_plugins")) { // check if admin
-			//     enable/disable for site
-				$site = get_current_site();
-
-				// TODO: if the array is empty, or the site setting doesn't exist, set it to false
-				echo '<label><input type="checkbox" name="' . HNE_MARKS . '['.$site['site_id'].'_block]" value="' . true . '" ' . checked( $options_arr[$site['site_id'].'_block'] ) . '>'.$site['domain'].$site['path'].'</label>';
-				$testState .= "admin ";
-			} else {
-			//     not allowed here
-				echo 'should never land here';
-				$testState .= "shouldn't happen! ";
-			}
-		}
-
-		echo $testState; //TODO test statement */
-	$block_comments = false;
+	$block_commenting           = false;
+	$block_show_comments        = false;
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
-		if (array_key_exists('site_block_comments', $options_arr)) {
-			$block_comments = is_bool($options_arr['site_block_comments'])? $options_arr['site_block_comments'] : false;
+		if ( array_key_exists( 'site_block_commenting', $options_arr ) ) {
+			$block_commenting = is_bool( $options_arr['site_block_commenting'] ) ? $options_arr['site_block_commenting'] : false;
+		}
+		if ( array_key_exists( 'site_block_show_comments', $options_arr ) ) {
+			$block_show_comments = is_bool( $options_arr['site_block_show_comments'] ) ? $options_arr['site_block_show_comments'] : false;
 		}
 	}
 
-	echo '<label><input type="checkbox" name="' . HNE_MARKS . '[site_block_comments]" value="' . true . '" ' . checked( $block_comments, true, false ) . '>Block comments</label><br>';
+	$disable_block_commenting    = false; // future global support: ( $global_block_commenting && is_multisite() ) ? 'disabled' : '';
+	$disable_block_show_comments = false; // future global support: ( $global_block_show_comments && is_multisite() ) ? 'disabled' : '';
 
-	echo '		<input type="submit" class="button-primary" value="';
+	echo '<label><input type="checkbox" name="' . HNE_MARKS . '[site_block_commenting]" value="' . true . '" ' . checked( $block_commenting, true, false ) . ' ' . $disable_block_commenting . '>Block commenting</label><br>';
+
+	echo '<label><input type="checkbox" name="' . HNE_MARKS . '[site_block_show_comments]" value="' . true . '" ' . checked( $block_show_comments, true, false ) . ' ' . $disable_block_show_comments . '>Block showing comments</label><br>';
+
+	echo '		<input name="my_submit" type="submit" class="button-primary" value="';
 	_e( 'Save Changes', HNE_PLUGIN_TAG );
 	echo '" />';
 	echo '	</form>';
 	echo '</div>';
-}
-
-add_action( HNE_WP_PLUGIN_ADMIN_INIT, 'hne_register_settings' );
-/*
-	Store the settings after the user has submitted the settings form.
-*/
-function hne_register_settings() {
-	// register settings
-	register_setting( HNE_SETTINGS, HNE_MARKS, HNE_FNC_SANITIZE_OPTS );
 }
 
 /*
@@ -247,45 +195,40 @@ function hne_sanitize_options( $options ) {
 	if ( ! is_null( $options ) ) {
 		$sanitized_options = array();
 
-		if ( isset( $options['site_block_comments'] ) ) {
-			$sanitized_options['site_block_comments'] = true;
-		} else {
-			$sanitized_options['site_block_comments'] = false;
+		if ( ( is_multisite() && current_user_can( "manage_sites" ) ) || ( ! is_multisite() ) ) {
+			if ( isset( $options['site_block_commenting'] ) ) {
+				$sanitized_options['site_block_commenting'] = true;
+			} else {
+				$sanitized_options['site_block_commenting'] = false;
+			}
+
+			if ( isset( $options['site_block_show_comments'] ) ) {
+				$sanitized_options['site_block_show_comments'] = true;
+			} else {
+				$sanitized_options['site_block_show_comments'] = false;
+			}
 		}
 
 		return $sanitized_options;
-	} else {
-		return null;
 	}
+	return null;
 }
-
-//check here for hooks:http://codex.wordpress.org/Function_Reference/comment_form
-// need to read wordpress code probably
-//  looks like want the filter comment_form_default_fields
-
-/*
- * 		global $current_site;
-			if($current_site->id == 1) {
-   		echo $current_site->path;
-}
- */
-
-// TODO: handle these based on settings
 
 // removes the links for adding comments
 add_filter( 'comments_open', 'my_comments_open', 10, 2 );
 
 function my_comments_open( $open, $post_id ) {
 
-	$options_arr = get_option( HNE_MARKS );
+	$options_arr = get_site_option( HNE_MARKS );
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
-		if (array_key_exists('site_block_comments', $options_arr)) {
-			if ($options_arr['site_block_comments']) {
+		if ( array_key_exists( 'site_block_commenting', $options_arr ) ) {
+			if ( $options_arr['site_block_commenting'] ) {
 				return null;
 			}
 		}
 	}
+
 	return $open;
 }
 
@@ -296,15 +239,16 @@ function my_comments_open( $open, $post_id ) {
 add_filter( 'comments_array', 'my_comments_array', 10, 2 ); // should it be 2 args?
 
 function my_comments_array( $comments, $post_id ) {
-	$options_arr = get_option( HNE_MARKS );
+	$options_arr = get_site_option( HNE_MARKS );
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
-		if (array_key_exists('site_block_comments', $options_arr)) {
-			if ($options_arr['site_block_comments']) {
+		if ( array_key_exists( 'site_block_show_comments', $options_arr ) ) {
+			if ( $options_arr['site_block_show_comments'] ) {
 				return null;
 			}
 		}
 	}
+
 	return $comments;
 }
 
@@ -315,14 +259,15 @@ function custom_recent_comments() {
 }
 
 function custom_comments_clauses( $clauses ) {
-	$options_arr = get_option( HNE_MARKS );
+	$options_arr = get_site_option( HNE_MARKS );
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
-		if (array_key_exists('site_block_comments', $options_arr)) {
-			if ($options_arr['site_block_comments']) {
+		if ( array_key_exists( 'site_block_show_comments', $options_arr ) ) {
+			if ( $options_arr['site_block_show_comments'] ) {
 				$clauses['limits'] = "LIMIT 0"; // change the SQL query to get 0 of them
 			}
 		}
 	}
+
 	return $clauses;
 }
