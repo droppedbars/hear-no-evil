@@ -2,7 +2,7 @@
 /*
 Plugin Name: Hear No Evil
 Plugin URI: http://github.com/droppedbars/Hear-No-Evil
-Description: description
+Description: Hear No Evil is designed for Multisite right from the get go.  Each site administrator will have the ability to block or unblock the ability to comment, and comments themselves from their site's settings menu.
 Version: 0.1.0
 Author: Patrick Mauro
 Author URI: http://patrick.mauro.ca
@@ -25,9 +25,6 @@ License: GPLv2
 	along with this program; if not, write to the Free Software 
 	Foundation, Inc., 51 Franklin St., Fifth Floor, Boston, MA 02110-1301 USA
 */
-
-// file path for linking to external files
-//require_once( dirname( __FILE__ ) . '/shared-globals.php' );
 
 // function and global prefix: hne / HNE
 
@@ -81,7 +78,6 @@ add_action( HNE_WP_PLUGIN_INIT, 'hne_init' );
 	Register javascript and CSS files.
 */
 function hne_init() {
-	//wp_register_script( 'hne_settings_handler', plugins_url( 'assets/settingsHandler.js', __FILE__ ) );
 }
 
 add_action( HNE_WP_PLUGIN_ADMIN_MENU, 'hne_menu' );
@@ -93,21 +89,6 @@ function hne_menu() {
 	$page_hook_suffix = add_options_page( __( HNE_SETTINGS_PAGE_NAME, HNE_PLUGIN_TAG ),
 			__( HNE_SETTINGS_NAME, HNE_PLUGIN_TAG ),
 			HNE_WP_USER_MANAGE_OPTS, HNE_SETTINGS_PAGE_URL, HNE_FNC_SETTINGS_PAGE );
-
-	/*
-   * Use the retrieved $page_hook_suffix to hook the function that links our script.
-   * This hook invokes the function only on our plugin administration screen,
-   * see: http://codex.wordpress.org/Administration_Menus#Page_Hook_Suffix
-   */
-	//add_action( 'admin_print_scripts-' . $page_hook_suffix, HNE_FNC_ADMIN_SCRIPTS );
-}
-
-/*
- * Load any already registered CSS or Javascript files
- */
-function hne_admin_scripts() {
-	/* Link our already registered script to a page */
-	//wp_enqueue_script( 'hne_settings_handler' );
 }
 
 /*
@@ -117,7 +98,6 @@ function hne_page() {
 	if ( ! current_user_can( HNE_WP_USER_MANAGE_OPTS ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	$allSites = null;
 
 	if ( isset( $_POST['my_submit'] ) ) {
 		if ( ! isset( $_POST[HNE_MARKS]['site_block_commenting'] ) ) {
@@ -146,7 +126,8 @@ function hne_page() {
 // create form
 	echo '<h1>Hear No Evil Settings</h1>';
 	echo '<div class="wrap">';
-
+	// TODO fill out text
+	echo 'content!!!';
 
 	if ( isset( $_POST['my_submit'] ) ) {
 		echo '<div id="message" class="updated fade">';
@@ -158,7 +139,6 @@ function hne_page() {
 
 	echo '	<form method="post" action="">';
 	settings_fields( HNE_SETTINGS );
-
 
 	$block_commenting           = false;
 	$block_show_comments        = false;
@@ -217,6 +197,9 @@ function hne_sanitize_options( $options ) {
 // removes the links for adding comments
 add_filter( 'comments_open', 'my_comments_open', 10, 2 );
 
+/*
+ *
+ */
 function my_comments_open( $open, $post_id ) {
 
 	$options_arr = get_site_option( HNE_MARKS );
@@ -232,12 +215,12 @@ function my_comments_open( $open, $post_id ) {
 	return $open;
 }
 
-// remove the ability to edit existing comments
-// if existing one should still be shown
-
 // remove the ability to view existing comments
 add_filter( 'comments_array', 'my_comments_array', 10, 2 ); // should it be 2 args?
 
+/*
+ *
+ */
 function my_comments_array( $comments, $post_id ) {
 	$options_arr = get_site_option( HNE_MARKS );
 
@@ -254,10 +237,17 @@ function my_comments_array( $comments, $post_id ) {
 
 // remove ability to view comment widget
 add_action( 'widgets_init', 'custom_recent_comments' );
+
+/*
+ *
+ */
 function custom_recent_comments() {
 	add_filter( 'comments_clauses', 'custom_comments_clauses' );
 }
 
+/*
+ *
+ */
 function custom_comments_clauses( $clauses ) {
 	$options_arr = get_site_option( HNE_MARKS );
 
