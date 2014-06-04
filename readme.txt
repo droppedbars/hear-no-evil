@@ -3,18 +3,18 @@ Contributors: droppedbars
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D7J2RY6828E7N
 Tags: comment comments commenting block
 Requires at least: 3.7
-Tested up to: 3.8.2
+Tested up to: 3.9.1
 Stable tag: 0.1.0
 Author URI: http://patrick.mauro.ca
 Plugin URI: http://github.com/droppedbars/Hear-No-Evil
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Block comments on a site-by-site basis in WordPress Multisite.
+Block comments on for a WordPress site or on a site-by-site basis in WordPress Multisite.
 
 == Description ==
 
-Hear No Evil is designed for Multisite right from the get go.  Each site administrator will have the ability to block or unblock the ability to comment, and comments themselves from their site's settings menu.
+Enable site administrator will have the ability to block or unblock the ability to comment, and comments themselves.  Built from the start for multisite installations.
 
 == Features ==
 
