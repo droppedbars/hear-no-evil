@@ -3,7 +3,7 @@
 Plugin Name: Hear No Evil
 Plugin URI: http://github.com/droppedbars/Hear-No-Evil
 Description: Hear No Evil is designed for Multisite right from the get go.  Each site administrator will have the ability to block or unblock the ability to comment, and comments themselves from their site's settings menu.
-Version: 0.1.0
+Version: 0.1.1
 Author: Patrick Mauro
 Author URI: http://patrick.mauro.ca
 License: GPLv2
@@ -160,7 +160,7 @@ function hne_page() {
 }
 
 // removes the links for adding comments
-add_filter( 'comments_open', 'my_comments_open', 10, 2 );
+add_filter( 'comments_open', 'hne_my_comments_open', 10, 2 );
 
 /**
  * If configured to do so, forces the post to have commenting closed
@@ -170,7 +170,7 @@ add_filter( 'comments_open', 'my_comments_open', 10, 2 );
  *
  * @return $open unless commenting is blocked, in which case returns null
  */
-function my_comments_open( $open, $post_id ) {
+function hne_my_comments_open( $open, $post_id ) {
 
 	$options_arr = get_site_option( HNE_OPTIONS );
 
@@ -186,7 +186,7 @@ function my_comments_open( $open, $post_id ) {
 }
 
 // remove the ability to view existing comments
-add_filter( 'comments_array', 'my_comments_array', 10, 2 );
+add_filter( 'comments_array', 'hne_my_comments_array', 10, 2 );
 
 /**
  * Prevents comments from being shown by returning null instead of the comments array
@@ -196,7 +196,7 @@ add_filter( 'comments_array', 'my_comments_array', 10, 2 );
  *
  * @return $comments will return null if comments are blocked
  */
-function my_comments_array( $comments, $post_id ) {
+function hne_my_comments_array( $comments, $post_id ) {
 	$options_arr = get_site_option( HNE_OPTIONS );
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
@@ -211,13 +211,13 @@ function my_comments_array( $comments, $post_id ) {
 }
 
 // remove ability to view comment widget
-add_action( 'widgets_init', 'custom_recent_comments' );
+add_action( 'widgets_init', 'hne_custom_recent_comments' );
 
 /**
  * Add the filter that will act on the comments_clauses filter
  */
-function custom_recent_comments() {
-	add_filter( 'comments_clauses', 'custom_comments_clauses' );
+function hne_custom_recent_comments() {
+	add_filter( 'comments_clauses', 'hne_custom_comments_clauses' );
 }
 
 /**
@@ -227,7 +227,7 @@ function custom_recent_comments() {
  *
  * @return mixed
  */
-function custom_comments_clauses( $clauses ) {
+function hne_custom_comments_clauses( $clauses ) {
 	$options_arr = get_site_option( HNE_OPTIONS );
 
 	if ( ( ! is_null( $options_arr ) ) && ( is_array( $options_arr ) ) ) {
