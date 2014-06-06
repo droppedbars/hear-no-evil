@@ -3,7 +3,7 @@
 Plugin Name: Hear No Evil
 Plugin URI: http://github.com/droppedbars/Hear-No-Evil
 Description: Hear No Evil is designed for Multisite right from the get go.  Each site administrator will have the ability to block or unblock the ability to comment, and comments themselves from their site's settings menu.
-Version: 0.1.1
+Version: 0.1.2
 Author: Patrick Mauro
 Author URI: http://patrick.mauro.ca
 License: GPLv2

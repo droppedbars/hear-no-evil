@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: comment comments commenting block
 Requires at least: 3.7
 Tested up to: 3.9.1
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 Author URI: http://patrick.mauro.ca
 Plugin URI: http://github.com/droppedbars/Hear-No-Evil
 License: GPLv2 or later
@@ -52,8 +52,15 @@ Enable site administrator will have the ability to block or unblock the ability 
 
 == Changelog ==
 
+= 0.1.2 =
+* Corrections to function names and readme to conform to Wordpress standards.
+
 = 0.1.0 =
 * Initial release.  Support for admins to block comments on their sites.
+
+== Upgrade Notice ==
+
+None.
 
 == Roadmap ==
 
